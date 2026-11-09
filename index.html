@@ -426,7 +426,6 @@ async function enterWith(sess){
   const [r1,r2]=await Promise.all([rpc("exam_my_results",{p_token:ME.token}).catch(()=>({})),rpc("exam_flags",{p_token:ME.token}).catch(()=>({}))]);RES=r1||{};FLAGS=r2||{};
   if(IN_TG&&(ME.admin||FLAGS.newui==="all")){stopChat();$("gate").hidden=true;NX.start();return}
   stopChat();$("gate").hidden=true;$("app").hidden=false;bootDone();
-  if(!IN_TG&&!ME.admin&&FLAGS.newui==="all"){tgOnly();return}
   $("whoName").textContent=ME.name;$("whoAv").textContent=ME.name.split(" ").map(w=>w[0]||"").join("").slice(0,2);
   $("admBtn").hidden=!ME.admin;$("logout").hidden=IN_TG;$("rateBtn").hidden=!(ME.tg||ME.admin);if(ME.tg)loadWeek();
   if(ME.admin){refreshUnread();clearInterval(unreadT);unreadT=setInterval(refreshUnread,30000)}
@@ -779,7 +778,7 @@ async function adminView(){
   ${TGI?`<p class="hint" style="padding:12px 18px;margin:0">Telegram foydalanuvchilari: <b>${TGI.users}</b> · shu hafta ball to'plaganlar: <b>${TGI.active_week}</b> · savol kalitlari: <b>${TGI.keys}</b>${TGI.admin_linked?" · sizning Telegram akkauntingiz admin sifatida ulangan":""}</p>
   <div class="ann-ctl"><button class="btn sm" id="keysBtn">Ball kalitlarini yangilash</button><button class="btn sm" id="boardBtn">Reytingni ko'rish</button><span class="hint" id="keysOut">${TGI.keys?"":"Ball hisoblanishi uchun bir marta bosing."}</span></div>`:`<p class="hint" style="padding:12px 18px;margin:0">Avval Supabase'da migrate12.sql ni ishga tushiring.</p>`}</div>
   <div class="panel" id="nuiP"><div class="panel-h"><h3>Yangi Telegram ilova</h3><span class="aud ${FLAGS.newui==="all"?"aud-all":"aud-admin"}">${FLAGS.newui==="all"?"Hamma foydalanuvchiga":"Faqat sizga"}</span></div>
-  <p class="hint" style="padding:12px 18px;margin:0">To'q dizayndagi yangi ilova: kunlik vazifa, darajali liga, xato daftari, taklif bonusi, bot eslatmalari. Hammaga ochilganda sayt orqali kirish yopiladi (faqat admin kira oladi), foydalanuvchilar Telegram botga yo'naltiriladi.</p>
+  <p class="hint" style="padding:12px 18px;margin:0">To'q dizayndagi yangi ilova: kunlik vazifa, darajali liga, xato daftari, taklif bonusi, bot eslatmalari. Hammaga ochilganda Telegram'dagi hamma foydalanuvchi yangi ilovani ko'radi. Sayt avvalgidek ishlayveradi, pastki chap burchakda botga havola turadi.</p>
   <div class="ann-ctl">${FLAGS.newui==="all"?`<button class="btn sm" data-nflag="admin">Faqat menga qaytarish</button>`:`<button class="btn sm danger" data-nflag="all">Hammaga ochish</button>`}</div></div>
   <div class="panel" id="provP"><div class="panel-h"><h3>Provodkalar bo'limi va qo'shimcha savollar</h3><span class="aud ${FLAGS.prov==="all"?"aud-all":"aud-admin"}">${FLAGS.prov==="all"?"Hamma foydalanuvchiga":"Faqat sizga"}</span></div>
   <p class="hint" style="padding:12px 18px;margin:0">«Provodkalar» bo'limi (405 savol, 20 mavzu) hamda Bosh buxgalter va Mehnat haqi bo'limlaridagi «Qo'shimcha savollar».</p>
@@ -1216,6 +1215,35 @@ const NX=(()=>{
   }
   return {start};
 })();
+</script>
+
+<style>
+.tgfab-w{position:fixed;left:max(16px,env(safe-area-inset-left));bottom:calc(16px + env(safe-area-inset-bottom));z-index:30;font-family:var(--f-body)}
+.tgfab{display:inline-flex;align-items:center;gap:10px;padding:8px 16px 8px 8px;border-radius:99px;background:#fff;color:#0f1d17;text-decoration:none;font-weight:700;font-size:14.5px;box-shadow:0 6px 20px rgba(15,29,23,.16),0 0 0 1px rgba(15,29,23,.08);transition:transform .15s,box-shadow .15s}
+.tgfab:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(15,29,23,.2),0 0 0 1px rgba(15,29,23,.08)}
+.tgfab:focus-visible{outline:3px solid #229ED9;outline-offset:3px}
+.tgfab .tgi{width:36px;height:36px;border-radius:50%;background:#229ED9;display:grid;place-items:center;flex:none}
+.tgfab small{display:block;font-weight:500;font-size:12px;color:#5b6b64;margin-top:1px}
+.tgpop{position:absolute;left:0;bottom:calc(100% + 12px);width:250px;background:#fff;border-radius:16px;padding:16px;box-shadow:0 14px 40px rgba(15,29,23,.22),0 0 0 1px rgba(15,29,23,.08);color:#0f1d17;text-align:center;opacity:0;visibility:hidden;transform:translateY(6px);transition:.15s}
+.tgpop b{display:block;font-size:15px;margin-bottom:4px}
+.tgpop p{margin:0 0 10px;font-size:13px;line-height:1.4;color:#5b6b64}
+.tgpop svg{width:150px;height:150px;display:block;margin:0 auto}
+@media (hover:hover) and (pointer:fine){.tgfab-w:hover .tgpop,.tgfab-w:focus-within .tgpop{opacity:1;visibility:visible;transform:none}}
+@media (max-width:560px){.tgfab small{display:none}.tgfab{font-size:13.5px}}
+body.has-fab{padding-bottom:76px}
+body.nx-on .tgfab-w{display:none}
+@media print{.tgfab-w{display:none}}
+</style>
+<div class="tgfab-w" id="tgFab" hidden>
+  <div class="tgpop" aria-hidden="true"><b>Telefoningizda oching</b><p>Kamera bilan skanerlang — bot Telegram'da ochiladi.</p><svg role="img" aria-label="Bot QR-kodi" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 132 132" class="segno"><g transform="scale(4)"><path fill="#fff" d="M0 0h33v33h-33z"/><path class="qrline" stroke="#0a0d14" d="M2 2.5h7m3 0h1m4 0h2m2 0h1m2 0h7m-29 1h1m5 0h1m1 0h3m1 0h3m1 0h2m4 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m1 0h1m1 0h4m1 0h1m3 0h1m2 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m3 0h2m4 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m3 0h1m1 0h1m2 0h2m2 0h2m1 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m2 0h1m1 0h2m2 0h1m4 0h1m1 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-21 1h2m1 0h2m1 0h3m1 0h1m1 0h1m-21 1h1m5 0h1m1 0h1m1 0h2m5 0h1m3 0h2m2 0h3m-28 1h1m7 0h2m1 0h3m2 0h1m1 0h2m4 0h1m1 0h2m-27 1h2m2 0h2m2 0h3m1 0h3m6 0h3m-17 1h1m3 0h2m6 0h6m-26 1h4m2 0h2m1 0h2m1 0h2m1 0h2m2 0h1m2 0h2m4 0h1m-27 1h2m1 0h1m1 0h2m2 0h1m7 0h2m1 0h3m2 0h2m-29 1h2m1 0h1m1 0h4m1 0h1m1 0h1m2 0h1m1 0h2m2 0h1m1 0h4m-27 1h2m9 0h2m10 0h1m2 0h1m1 0h1m-26 1h1m2 0h1m1 0h5m2 0h3m1 0h1m5 0h2m-27 1h1m1 0h2m5 0h1m2 0h5m2 0h6m1 0h3m-29 1h2m3 0h2m1 0h1m3 0h1m2 0h1m1 0h1m1 0h1m2 0h2m1 0h1m2 0h1m-29 1h1m2 0h1m4 0h1m1 0h4m1 0h2m1 0h1m2 0h1m1 0h1m-24 1h1m1 0h2m1 0h2m3 0h1m1 0h1m1 0h1m2 0h1m2 0h5m1 0h3m-21 1h1m1 0h1m3 0h2m1 0h2m1 0h1m3 0h2m-26 1h7m2 0h1m1 0h2m2 0h1m3 0h2m1 0h1m1 0h3m-27 1h1m5 0h1m4 0h2m1 0h2m2 0h3m3 0h1m2 0h1m-28 1h1m1 0h3m1 0h1m2 0h3m1 0h4m2 0h7m1 0h2m-29 1h1m1 0h3m1 0h1m3 0h3m1 0h3m1 0h4m3 0h2m1 0h1m-29 1h1m1 0h3m1 0h1m3 0h3m2 0h1m2 0h2m2 0h1m1 0h4m-28 1h1m5 0h1m2 0h3m2 0h3m7 0h3m1 0h1m-29 1h7m1 0h2m2 0h6m1 0h1m1 0h1m1 0h4"/></g></svg>
+</div>
+  <a class="tgfab" href="https://t.me/buxgalter_testlarbot" target="_blank" rel="noopener" aria-label="Exam Telegram botini ochish: @buxgalter_testlarbot">
+    <span class="tgi" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M4.6 11.4 18.1 6.2c.7-.3 1.3.2 1.1 1.2l-2.3 10.8c-.2.8-.7 1-1.3.6l-3.6-2.6-1.7 1.7c-.2.2-.4.3-.8.3l.3-3.6 6.6-6c.3-.3-.1-.4-.4-.2l-8.2 5.2-3.5-1.1c-.8-.2-.8-.8.1-1.1z"/></svg></span>
+    <span>Telegram botimiz<small>@buxgalter_testlarbot</small></span>
+  </a>
+</div>
+<script>
+if(!IN_TG){$("tgFab").hidden=false;document.body.classList.add("has-fab")}
 </script>
 
 </body>
