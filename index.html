@@ -379,7 +379,8 @@ const COURSES=[
 ,
   {"name": "Замонавий бухгалтерия ҳисоби: нолдан балансгача", "short": "Noldan balansgacha (kitob)", "off": 5000, "pAll": 499, "pBase": 500, "prob": "Kitobdagi hisob-kitob talab qiladigan savollar.", "nQ": 510, "ch": [{"acc": "К", "t": "Китоб боблари", "ix": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]}], "nPer": [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10], "src": "Ғуломова Ф.Ғ. «Замонавий бухгалтерия ҳисоби: нолдан балансгача». Ўқув қўлланма. – Тошкент: ТДИУ, 2012.", "srcShort": "Нолдан балансгача", "note": "Kitob 2012 yilda chiqqan: soliq stavkalari va ba'zi qoidalar hozirgi qonunchilikdan farq qilishi mumkin. Javoblar kitob bo'yicha.", "tier": "Kitob", "id": 6, "encUrl": "d/c6.6433a6fb61.json"}
 ,
-  {"id": 9, "name": "Проводкалар — бухгалтерия ўтказмалари", "short": "Provodkalar", "tier": "", "gate": "prov", "off": 8000, "pAll": 499, "pBase": 500, "prob": "", "nQ": 405, "ch": [{"acc": "5000", "t": "Pul mablag‘lari va investitsiyalar", "ix": [0, 1, 2]}, {"acc": "0100", "t": "Asosiy vositalar, NMA va ijara", "ix": [3, 4, 5, 6, 7]}, {"acc": "1000", "t": "TMZ, ishlab chiqarish va tovarlar", "ix": [8, 9, 10, 11, 12, 13]}, {"acc": "6700", "t": "Mehnat haqi va hisobdor shaxslar", "ix": [14, 15, 16]}, {"acc": "4000", "t": "Hisob-kitoblar, moliyaviy natija va kapital", "ix": [17, 18, 19]}], "src": "Barcha bo‘limlardagi Дт/Кт savollari va bir.uz skrinshotlari, takrorlarsiz.", "srcShort": "Provodkalar", "encUrl": "d/c9.b9fccbec80.json"}
+  {"id": 9, "name": "Проводкалар — бухгалтерия ўтказмалари", "short": "Provodkalar", "tier": "", "gate": "prov", "off": 8000, "pAll": 499, "pBase": 500, "prob": "", "nQ": 405, "ch": [{"acc": "5000", "t": "Pul mablag‘lari va investitsiyalar", "ix": [0, 1, 2]}, {"acc": "0100", "t": "Asosiy vositalar, NMA va ijara", "ix": [3, 4, 5, 6, 7]}, {"acc": "1000", "t": "TMZ, ishlab chiqarish va tovarlar", "ix": [8, 9, 10, 11, 12, 13]}, {"acc": "6700", "t": "Mehnat haqi va hisobdor shaxslar", "ix": [14, 15, 16]}, {"acc": "4000", "t": "Hisob-kitoblar, moliyaviy natija va kapital", "ix": [17, 18, 19]}], "src": "Barcha bo‘limlardagi Дт/Кт savollari va bir.uz skrinshotlari, takrorlarsiz.", "srcShort": "Provodkalar", "encUrl": "d/c9.b9fccbec80.json"},
+  {"id": 10, "name": "Artel uchun", "short": "Artel uchun", "tier": "", "gate": "artel", "artel": true, "keyRpc": "exam_artel_key", "off": 9000, "pAll": 499, "pBase": 500, "prob": "", "nQ": 223, "nEasy": 119, "nHard": 104, "ch": [{"acc": "A", "t": "Artel uchun", "ix": [0, 1]}], "src": "", "srcShort": "Artel", "encUrl": "d/c10.17beca7553.json"}
 ];
 const XTRA_URL="d/x.e8c8d5debc.json";let XD=null;
 let C=COURSES[0],DK=null,FLAGS={};const DC={};
@@ -389,7 +390,7 @@ const TG=window.Telegram&&window.Telegram.WebApp,IN_TG=!!(TG&&TG.initData);
 const PROV=()=>!!ME&&(ME.admin||FLAGS.prov==="all");
 const SAMPLE=()=>!!ME&&(ME.admin||FLAGS.sample==="all");
 async function loadCourses(){try{const X=await rpc("exam_courses",{p_token:ME.token})||[];X.forEach(m=>{if(!COURSES.some(c=>c.id===m.id))COURSES.push({...m,enc:null})});COURSES.sort((a,b)=>a.id-b.id)}catch(e){}}
-async function courseData(c){if(DC[c.id])return DC[c.id];if(!c.enc)c.enc=c.encUrl?await getJ(c.encUrl):await rpc("exam_course_enc",{p_token:ME.token,p_id:c.id});const d=await decryptData(DK,c.enc);
+async function courseData(c){if(DC[c.id])return DC[c.id];if(!c.enc)c.enc=c.encUrl?await getJ(c.encUrl):await rpc("exam_course_enc",{p_token:ME.token,p_id:c.id});const d=await decryptData(c.keyRpc?await rpc(c.keyRpc,{p_token:ME.token}):DK,c.enc);
   if(PROV()){try{if(!XD)XD=await decryptData(DK,await getJ(XTRA_URL));const X=XD[c.id];if(X&&X.length&&!c.xAdded){const ix=X.map((t,k)=>d.length+k);d.push(...X);c.ch=[...c.ch,{acc:"+",t:"Qo'shimcha savollar",ix}];if(c.nQ)c.nQ+=X.reduce((a,t)=>a+t.q.length,0);c.xAdded=1}}catch(e){}}
   DC[c.id]=d;return d}
 const LET="abcdef";
@@ -934,6 +935,17 @@ body.nx-on .site-foot,body.nx-on #app,body.nx-on #gate,body.nx-on .toast{display
 #nx .x-on{display:inline-block;margin:0 6px;vertical-align:middle}
 @keyframes nxPulse{50%{box-shadow:0 0 0 6px rgba(74,222,128,0)}}
 @media (prefers-reduced-motion:reduce){#nx .x-live i{animation:none}}
+#nx .x-art{border:0;border-radius:20px;padding:16px;background:linear-gradient(135deg,#FF9A3C 0%,#FF6A2B 100%);color:#1A0D04;display:flex;flex-direction:column;gap:12px;text-align:left;width:100%}
+#nx .x-art .ic{width:42px;height:42px;flex:none;border-radius:13px;background:rgba(26,13,4,.16);display:grid;place-items:center}
+#nx .x-art .t{font-size:17px;font-weight:800;letter-spacing:-.2px}
+#nx .x-art .s{font-size:12.5px;font-weight:600;color:#4A2408}
+#nx .x-art .cta{min-height:44px;border-radius:12px;background:#1A0D04;color:#FFB067;font-size:14.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px}
+#nx .x-art .bar{height:6px;border-radius:99px;background:rgba(26,13,4,.18);overflow:hidden}
+#nx .x-art .bar i{display:block;height:100%;background:#1A0D04;border-radius:99px}
+#nx .x-artw{border-radius:20px;padding:16px;background:#1F1408;border:1.5px dashed #FF8A3D;display:flex;align-items:center;gap:12px;width:100%;text-align:left;color:var(--tx)}
+#nx .x-btn.org{background:linear-gradient(135deg,#FF9A3C 0%,#FF6A2B 100%);color:#1A0D04}
+#nx .x-tag.org{color:#FFB067;background:#2E1C0B;border-color:#6B3A17}
+#nx .x-av img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
 #nx .x-foot{text-align:center;color:#5C667A;font-size:12px;padding:8px 0 4px}
 #nx :focus-visible{outline:2px solid var(--ac2);outline-offset:2px}
 </style>
@@ -974,7 +986,7 @@ const NX=(()=>{
   const vib=()=>ls.get("nx_vib")!=="0";
   const hap=t=>{if(!vib())return;try{TG.HapticFeedback.notificationOccurred(t)}catch(e){}};
   const M=()=>$("nxMain");
-  let hP=null,lgT=null,lgRank=null,NAME="",H=null,tab="home",stack=[],Q=null,MIS=null,misFilter=0,LG=null;
+  let ACC={},SEEN=null,hP=null,lgT=null,lgRank=null,NAME="",H=null,tab="home",stack=[],Q=null,MIS=null,misFilter=0,LG=null;
 
   function ntoast(m){const t=$("nxToast");t.textContent=m;t.hidden=false;clearTimeout(ntoast._t);ntoast._t=setTimeout(()=>t.hidden=true,2600)}
   function nav(show){$("nxNav").hidden=!show;$("nxNav").querySelectorAll("[data-tab]").forEach(b=>{if(b.dataset.tab===tab)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")})}
@@ -994,10 +1006,17 @@ const NX=(()=>{
     if(sp&&/^r\d+$/.test(sp)&&!ls.get("nx_ref")){ls.set("nx_ref","1");rpc("exam_tg_ref",{p_token:ME.token,p_code:sp}).catch(()=>{})}
     nav(true);hP=loadH();bootDone();
     M().innerHTML=`<p class="x-load">Yuklanmoqda…</p>`;
-    await loadCourses();goTab("home");
+    await Promise.all([loadCourses(),loadAcc()]);goTab("home");
+    if(/[?&]open=artel/.test(location.search)&&ART()){tab="courses";show(courses);show(artel,true)}
   }
   async function loadH(){try{H=await rpc("exam_tg_home",{p_token:ME.token});if(H.flags)FLAGS=H.flags}catch(e){H=H||null}misDot();return H}
-  const vis=()=>COURSES.filter(visible);
+  const vis=()=>COURSES.filter(c=>visible(c)&&!c.artel);
+  const ART=()=>COURSES.find(c=>c.artel);
+  const artOk=()=>ME.admin||ACC["10"]==="approved";
+  const canSee=c=>c&&(c.artel?artOk():visible(c));
+  const LOCK=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A0D04" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`;
+  const CLOCK=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFB067" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`;
+  async function loadAcc(){try{ACC=await rpc("exam_access_status",{p_token:ME.token})||{}}catch(e){}return ACC}
   const cname=c=>c.short||c.name;
   function cprog(c){const st=courseStats(c);return {pct:st.nT?Math.round(100*st.done/st.nT):0,nQ:st.nQ,nT:st.nT,done:st.done}}
 
@@ -1035,11 +1054,73 @@ const NX=(()=>{
   /* ---------- Bo'limlar ---------- */
   function courses(){
     nav(true);
-    M().innerHTML=`<div><h1>Bo'limlar</h1><p class="x-sub">Buxgalteriya hisobi bo'yicha ${vis().length} ta bo'lim</p></div>
+    const A=ART();
+    M().innerHTML=`<div><h1>Bo'limlar</h1><p class="x-sub">Buxgalteriya hisobi bo'yicha ${vis().length+(A?1:0)} ta bo'lim</p></div>
+    ${A?artCard():""}
     ${vis().map(c=>{const p=cprog(c);return `<button class="x-item" data-c="${c.id}"><span class="x-ic">${c.id}</span><span class="x-grow"><span class="x-row" style="gap:6px"><span class="x-ell" style="font-size:14px;font-weight:600">${esc(cname(c))}</span>${c.gate&&FLAGS[c.gate]!=="all"?`<span class="x-new">ADMIN</span>`:c.id===9?`<span class="x-new">YANGI</span>`:""}</span>
       <span class="x-row" style="gap:8px"><span class="x-bar thin" style="flex:1"><i style="width:${p.pct}%"></i></span><span class="x-mu" style="font-size:12px;font-weight:600;white-space:nowrap">${p.nQ?n0(p.nQ)+" savol · ":""}${p.pct}%</span></span></span>${ICO.chev}</button>`}).join("")}`;
     M().querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>show(()=>course(+b.dataset.c),true));
+    const ab=$("nxArt");if(ab)ab.onclick=()=>{if(artOk())show(artel,true);else if(ACC["10"]==="pending")ntoast("So'rovingiz admin tasdiqlashini kutmoqda");else show(artReq,true)};
+    if(!courses.acc){courses.acc=1;loadAcc().then(()=>{courses.acc=0;if(cur===courses){const y=M().scrollTop;courses();M().scrollTop=y}})}else courses.acc=0;
   }
+  function artCard(){
+    const st=ACC["10"],A=ART();
+    if(artOk()){const n=SEEN?Object.keys(SEEN).length:null,pct=n!=null&&A.nQ?Math.round(100*n/A.nQ):0;
+      return `<button class="x-art" id="nxArt"><span class="x-row"><span class="ic"><span class="x-num" style="font-size:17px">A</span></span><span style="flex:1;display:flex;flex-direction:column;gap:2px"><span class="t">Artel uchun</span><span class="s">${n4(A.nQ)} savol${n!=null?` · ${n} tasi ko'rilgan`:""}${ME.admin&&st!=="approved"?" · admin":""}</span></span>${ICO.chev.replace('#5C667A','#1A0D04')}</span>${n!=null?`<span class="bar"><i style="width:${pct}%"></i></span>`:""}</button>`}
+    if(st==="pending")return `<button class="x-artw" id="nxArt"><span class="x-ic" style="background:#2E1C0B;width:42px;height:42px;border-radius:13px">${CLOCK}</span><span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:16px;font-weight:800;color:#FFB067">Artel uchun</span><span style="font-size:12.5px;color:#C9A27E">So'rov yuborildi · admin tasdiqlashi kutilmoqda</span></span></button>`;
+    return `<button class="x-art" id="nxArt"><span class="x-row"><span class="ic">${LOCK}</span><span style="flex:1;display:flex;flex-direction:column;gap:2px"><span class="t">Artel uchun</span><span class="s">Yopiq bo'lim · faqat tasdiqlanganlar uchun</span></span><span style="font-size:11px;font-weight:800;background:#1A0D04;color:#FFB067;padding:4px 8px;border-radius:8px">YOPIQ</span></span><span class="cta">${st==="rejected"?"Qayta so'rov yuborish":"Kirish uchun so'rov yuborish"}${ICO.arrow.replace(/currentColor/g,"#FFB067")}</span></button>`;
+  }
+  const n4=x=>n0(x);
+  function tgAv(u,sz){const ph=u&&u.photo_url,nm=((u&&u.first_name||"")+" "+(u&&u.last_name||"")).trim()||NAME;
+    return `<span class="x-av" style="width:${sz}px;height:${sz}px;border-color:transparent;background:linear-gradient(135deg,#5B6CFF,#8B5CF6);color:#fff;font-size:${Math.round(sz*.36)}px;font-weight:800;flex:none">${ph?`<img src="${esc(ph)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.textContent='${esc(ini(nm)).replace(/'/g,"")}'">`:esc(ini(nm))}</span>`}
+  /* ---------- Artel: so'rov ---------- */
+  function artReq(){
+    nav(false);const u=(TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user)||{},nm=((u.first_name||"")+" "+(u.last_name||"")).trim()||NAME,wait=ACC["10"]==="rejected";
+    M().innerHTML=`<div class="x-top"><button class="x-back" id="nxB" aria-label="Orqaga">${ICO.back}</button><span class="x-mu" style="font-weight:600;font-size:13px">Bo'limlar</span></div>
+    <div class="x-art" style="padding:20px;gap:10px"><span class="ic" style="width:48px;height:48px;border-radius:15px">${LOCK}</span><h1 style="color:#1A0D04;font-size:24px">Artel uchun</h1>
+      <p style="margin:0;font-size:14px;line-height:1.45;font-weight:500;color:#3D1E06">Bu bo'lim faqat admin tasdiqlagan foydalanuvchilar uchun. So'rov yuboring — tasdiqlangach, bot sizga xabar beradi.</p></div>
+    <p class="x-chap">Admin sizni shunday ko'radi</p>
+    <div class="x-card x-row" style="padding:14px">${tgAv(u,52)}<div style="min-width:0"><div style="font-size:16px;font-weight:700" class="x-ell">${esc(nm)}</div><div class="x-mu" style="font-size:13px">${u.username?"@"+esc(u.username):"Username yo'q"} · Telegram profili</div></div></div>
+    <p class="x-sub" style="margin:0">Ismingiz, profil rasmingiz${u.username?", @username":""} va Telegram ID faqat admin'ga ko'rinadi.</p>
+    <button class="x-btn org" id="nxSend" style="margin-top:6px">So'rov yuborish</button>`;
+    $("nxB").onclick=back;
+    $("nxSend").onclick=async()=>{const b=$("nxSend");b.disabled=true;b.textContent="Yuborilmoqda…";
+      try{const r=await rpc("exam_access_request",{p_token:ME.token,p_course:10,p_init:(TG&&TG.initData)||""});
+        if(r==="wait"){ntoast("So'rovingiz yaqinda rad etilgan. Ertaga qayta urinib ko'ring");b.disabled=false;b.textContent="So'rov yuborish";return}
+        ACC["10"]=r==="approved"?"approved":"pending";hap("success");ntoast(r==="approved"?"Bo'lim sizga allaqachon ochiq":"So'rov yuborildi! Javob bot orqali keladi");
+        if(r==="approved"){stack.pop();show(artel,true)}else back()}
+      catch(e){ntoast("Yuborilmadi: "+e.message);b.disabled=false;b.textContent="So'rov yuborish"}};
+  }
+  /* ---------- Artel: bo'lim ---------- */
+  async function loadSeen(){try{SEEN=await rpc("exam_artel_seen",{p_token:ME.token})||{}}catch(e){SEEN=SEEN||{}}return SEEN}
+  async function artel(){
+    nav(false);const A=ART();if(!A||!artOk()){back();return}
+    M().innerHTML=`<p class="x-load">Yuklanmoqda…</p>`;
+    let d;try{[d]=await Promise.all([courseData(A),loadSeen()])}catch(e){M().innerHTML=`<div class="x-empty"><b>Bo'lim yuklanmadi</b>${esc(e.message)}</div>`;return}
+    if(cur!==artel)return;
+    const N=d.reduce((a,t)=>a+t.q.length,0),seen=Object.keys(SEEN).length,wr=Object.values(SEEN).filter(x=>x==="w").length,pct=Math.round(100*seen/N),left=N-seen;
+    M().innerHTML=`<div class="x-top"><button class="x-back" id="nxB" aria-label="Orqaga">${ICO.back}</button><div style="min-width:0"><h1 style="font-size:20px">Artel uchun</h1><p class="x-sub">Yopiq bo'lim${ME.admin&&ACC["10"]!=="approved"?" · siz adminsiz":""}</p></div></div>
+    <div class="x-art" style="gap:10px"><span class="s" style="font-size:12px;letter-spacing:1px;text-transform:uppercase;font-weight:800;color:#3D1E06">Ko'rilgan savollar</span>
+      <span class="x-row" style="gap:6px;align-items:baseline"><span class="x-num" style="font-size:40px;line-height:1">${seen}</span><span style="font-weight:700;color:#3D1E06">/ ${N}</span></span>
+      <span class="bar"><i style="width:${pct}%"></i></span>
+      <span class="s">${left?`Yana ${left} ta savolni hali ko'rmagansiz`:"Barcha savollarni ko'rib chiqdingiz!"}</span></div>
+    <div class="x-card" style="display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.45"><b style="font-size:15px">Test qanday ishlaydi</b>
+      <span>Har safar <b>30 ta savol</b>: 25 tasi asosiy, 5 tasi soliqlar bo'yicha (qiyinroq).</span>
+      <span>Avval hali ko'rmagan savollaringiz, keyin xato qilganlaringiz chiqadi. Asosiy savollar tugagach, soliq savollari ko'payadi.</span>
+      <span class="x-mu">Ball haftalik ligaga qo'shiladi.</span></div>
+    <button class="x-btn org" id="nxGo">${seen?"Yangi 30 ta savol":"Testni boshlash · 30 savol"}${ICO.arrow}</button>
+    ${wr?`<button class="x-btn ghost" id="nxWr">Faqat xatolarim · ${wr}</button>`:""}`;
+    $("nxB").onclick=back;$("nxGo").onclick=()=>startArtel(d);
+    const w=$("nxWr");if(w)w.onclick=()=>{const it=[];d.forEach((t,g)=>t.q.forEach((x,n)=>{if(SEEN[`10:${g}:${n}`]==="w")it.push({...x,cid:10,src:g,n})}));startQuiz({title:"Artel · xatolar",kind:"artelw",items:shuffle(it).slice(0,30)})};
+  }
+  function artPick(d){
+    const pool=g=>d[g].q.map((x,n)=>({...x,cid:10,src:g,n,st:SEEN[`10:${g}:${n}`]}));
+    const order=L=>[...shuffle(L.filter(x=>!x.st)),...shuffle(L.filter(x=>x.st==="w")),...shuffle(L.filter(x=>x.st&&x.st!=="w"))];
+    const E=pool(0),H2=pool(1),uE=E.filter(x=>!x.st).length,uH=H2.filter(x=>!x.st).length;
+    let nH=5+Math.min(Math.max(0,25-uE),Math.max(0,uH-5));nH=Math.min(nH,H2.length);const nE=Math.min(30-nH,E.length);
+    return shuffle([...order(E).slice(0,nE),...order(H2).slice(0,nH)]).map(({st,...x})=>x);
+  }
+  function startArtel(d){startQuiz({title:"Artel uchun",kind:"artel",items:artPick(d)})}
   async function course(id){
     nav(false);const c=COURSES.find(x=>x.id===id);if(!c||!visible(c)){back();return}
     M().innerHTML=`<p class="x-load">Yuklanmoqda…</p>`;
@@ -1078,7 +1159,7 @@ const NX=(()=>{
     M().innerHTML=`<div class="x-top"><button class="x-back" id="nxX" aria-label="Testni yopish">${ICO.x}</button>
       <div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="x-row x-sp" style="font-size:12px;color:var(--mu);font-weight:600"><span class="x-ell">${esc(Q.title)}</span><span><b style="color:var(--tx)">${Q.cur+1}</b> / ${N}</span></div><div class="x-bar"><i style="width:${100*answered/N}%"></i></div></div>
       <span class="x-pill x-fire" style="border-radius:12px" aria-label="Ketma-ket to'g'ri ${Q.run}">${ICO.fire}${Q.run}</span></div>
-    <div class="x-row" style="gap:8px;flex-wrap:wrap"><span class="x-tag">${esc(c?cname(c):"")}</span><span class="x-mu x-ell" style="font-size:12px;max-width:60%">${esc(topic)}</span></div>
+    <div class="x-row" style="gap:8px;flex-wrap:wrap"><span class="x-tag${c&&c.artel?" org":""}">${esc(c?cname(c):"")}</span><span class="x-mu x-ell" style="font-size:12px;max-width:60%">${esc(topic)}</span></div>
     <p class="x-qtext">${esc(it.q)}</p>
     <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:16px">${it.order.map((k,p)=>{let cl="x-opt";if(a>=0){cl+=k===it.c?" ok":k===a?" bad":" dim"}
       return `<button class="${cl}" data-o="${k}" ${a>=0?"disabled":""}><span class="k">${a>=0&&k===it.c?ICO.ok:a>=0&&k===a?ICO.bad:"ABCDEF"[p]}</span><span>${esc(it.o[k])}</span></button>`}).join("")}</div>`;
@@ -1096,7 +1177,7 @@ const NX=(()=>{
     $("nxNext").onclick=()=>{if(last){show(result,false);stack=[];tgBack()}else{Q.cur=Q.ans.findIndex(x=>x<0);quiz()}};
   }
   async function answer(k){
-    if(Q.ans[Q.cur]>=0)return;const qi=Q.cur,it=Q.items[qi],ok=k===it.c;Q.ans[qi]=k;Q.run=ok?Q.run+1:0;hap(ok?"success":"error");quiz();
+    if(Q.ans[Q.cur]>=0)return;const qi=Q.cur,it=Q.items[qi],ok=k===it.c;Q.ans[qi]=k;Q.run=ok?Q.run+1:0;if(it.cid===10&&SEEN){const kk=`10:${it.src}:${it.n}`;SEEN[kk]=ok?(SEEN[kk]==="w"?"w":"o"):"w"}hap(ok?"success":"error");quiz();
     try{const r=await rpc("exam_tg_answer",{p_token:ME.token,p_qk:it.cid+":"+it.src+":"+it.n,p_pick:await hash16(it.o[k])});
       Q&&(Q.pts[qi]=r&&r.pts!=null?r.pts:0);if(r&&H){if(r.week!=null)H.week=r.week;if(r.streak!=null)H.streak=r.streak;if(r.today!=null)H.today=r.today;if(r.fixed){H.mistakes=Math.max(0,(H.mistakes||1)-1);ntoast("Savol xato daftaridan o'chirildi")}else if(!ok)H.mistakes=(H.mistakes||0)+1;misDot()}}
     catch(e){Q&&(Q.pts[qi]=0)}
@@ -1111,12 +1192,18 @@ const NX=(()=>{
       <div class="x-ring" style="--p:${p};--rc:${rc}"><div><span class="x-num" style="font-size:28px">${p}%</span></div></div>
       <h1>${ok} / ${N} to'g'ri</h1><p class="x-sub" style="margin:0">${esc(Q.title)}</p>
       <span class="x-num" style="font-size:22px;color:${pts>=0?"var(--ac)":"var(--bad)"}">${pts>=0?"+":"−"}${Math.abs(pts)} ball</span></div>
-    ${W.length?`<button class="x-btn pri" id="nxRw">Xatolarni qayta ishlash · ${W.length}</button>`:""}
-    <button class="x-btn ${W.length?"ghost":"pri"}" id="nxHome">Bosh sahifaga</button>
+    ${Q.kind==="artel"?artRes():""}
+    ${W.length?`<button class="x-btn ${Q.kind==="artel"?"ghost":"pri"}" id="nxRw">Xatolarni qayta ishlash · ${W.length}</button>`:""}
+    <button class="x-btn ${W.length||Q.kind==="artel"?"ghost":"pri"}" id="nxHome">Bosh sahifaga</button>
     ${W.length?`<p class="x-chap">Xato javoblar</p>`+W.map(({it,k})=>misCard(it,it.o[Q.ans[k]])).join(""):`<div class="x-empty"><b>Xato yo'q!</b>Hamma savolga to'g'ri javob berdingiz.</div>`}`;
     $("nxHome").onclick=()=>{Q=null;goTab("home")};
+    const an=$("nxArtNew");if(an)an.onclick=async()=>{an.disabled=true;await loadSeen();startArtel(DC[10])};
     const rw=$("nxRw");if(rw)rw.onclick=()=>startQuiz({title:"Xatolar ustida ishlash",kind:"mist",items:W.map(o=>{const {order,...r}=o.it;return r})});
   }
+  function artRes(){const N=ART().nQ,seen=SEEN?Object.keys(SEEN).length:0,left=Math.max(0,N-seen);
+    return `<div class="x-art" style="gap:8px"><span class="s" style="font-size:12px;letter-spacing:1px;text-transform:uppercase;font-weight:800;color:#3D1E06">Artel uchun · ${seen} / ${N} savol ko'rildi</span><span class="bar"><i style="width:${Math.round(100*seen/N)}%"></i></span>
+      <span style="font-size:14px;font-weight:600;color:#3D1E06">${left?`Bu ${Q.items.length} ta savol ${N} talik bazadan. Yana <b>${left} ta</b> savolni hali ko'rmagansiz — keyingi testda ular chiqadi.`:"Barcha savollarni ko'rib chiqdingiz! Endi testlar xatolaringizga e'tibor beradi."}</span>
+      <button class="x-btn dark" id="nxArtNew" style="color:#FFB067">Yangi 30 ta savol${ICO.arrow}</button></div>`}
   async function saveT(q,p){
     const c=q.c,i=q.i,key=c.off+i,L=DC[c.id][i].q.length,prev=RES[key]||{},shown=q.items.map(it=>it.n),bad=q.items.filter((it,k)=>q.ans[k]!==it.c).map(it=>it.n),good=new Set(q.items.filter((it,k)=>q.ans[k]===it.c).map(it=>it.n));
     let seen=[...new Set([...(prev.seen||[]),...shown])].filter(k=>k<L);if(seen.length>=L)seen=shown.slice();
@@ -1168,7 +1255,7 @@ const NX=(()=>{
     nav(true);M().innerHTML=`<p class="x-load">Yuklanmoqda…</p>`;
     let L;try{L=await rpc("exam_tg_mistakes",{p_token:ME.token})||[]}catch(e){M().innerHTML=`<div class="x-empty"><b>Yuklanmadi</b>${esc(e.message)}</div>`;return}
     const need=[...new Set(L.map(m=>+m.qk.split(":")[0]))];
-    for(const id of need){const c=COURSES.find(x=>x.id===id);if(c&&visible(c))try{await courseData(c)}catch(e){}}
+    for(const id of need){const c=COURSES.find(x=>x.id===id);if(canSee(c))try{await courseData(c)}catch(e){}}
     const items=[];
     for(const m of L){const [cid,src,n]=m.qk.split(":").map(Number);const q=DC[cid]&&DC[cid][src]&&DC[cid][src].q[n];if(!q)continue;
       let mine=null;if(m.pick)for(const o of q.o){if(await hash16(o)===m.pick){mine=o;break}}
@@ -1207,11 +1294,36 @@ const NX=(()=>{
     <div class="x-set"><div><label for="nxRem" style="font-weight:600">Kunlik eslatma</label><select id="nxRem">${hrs.map(x=>`<option value="${x==null?"":x}" ${(h.remind_h==null?x==null:h.remind_h===x)?"selected":""}>${x==null?"O'chirilgan":String(x).padStart(2,"0")+":00"}</option>`).join("")}</select></div>
       <div><label for="nxVib" style="font-weight:600">Tebranish</label><span class="x-sw"><input type="checkbox" id="nxVib" ${vib()?"checked":""}><span></span></span></div></div>
     <p class="x-sub" style="margin:0">Eslatma bot orqali keladi, faqat o'sha kuni hali savol ishlamagan bo'lsangiz.</p>
+    ${ME.admin?`<button class="x-btn org" id="nxAdmReq">Artel so'rovlari</button>`:""}
     <p class="x-foot">© 2026 Exam · Doston Qurashev</p>`;
+    const ar=$("nxAdmReq");if(ar)ar.onclick=()=>show(admReq,true);
     $("nxVib").onchange=e=>{ls.set("nx_vib",e.target.checked?"1":"0");if(e.target.checked)hap("success")};
     $("nxRem").onchange=async e=>{const v=e.target.value===""?null:+e.target.value;try{await rpc("exam_tg_settings",{p_token:ME.token,p_remind:v});if(H)H.remind_h=v;ntoast(v==null?"Eslatma o'chirildi":"Eslatma "+String(v).padStart(2,"0")+":00 ga qo'yildi")}catch(err){ntoast(err.message)}};
     const sh=$("nxShare");if(sh)sh.onclick=()=>{const u="https://t.me/share/url?url="+encodeURIComponent(link)+"&text="+encodeURIComponent("Buxgalteriya bo'yicha nazariy bilimimizni birga oshiramiz: 8 000+ savol, haftalik liga.");
       try{TG.openTelegramLink(u)}catch(e){try{navigator.clipboard.writeText(link);ntoast("Havola nusxalandi")}catch(_){}}};
+  }
+  /* ---------- Admin: Artel so'rovlari ---------- */
+  let REQ=null,reqF="pending";
+  async function admReq(){
+    nav(false);M().innerHTML=`<p class="x-load">Yuklanmoqda…</p>`;
+    try{REQ=await rpc("exam_admin_access",{p_token:ME.token})||[]}catch(e){M().innerHTML=`<div class="x-empty"><b>Yuklanmadi</b>${esc(e.message)}</div>`;return}
+    if(cur!==admReq)return;drawReq();
+  }
+  function drawReq(){
+    const cnt=k=>REQ.filter(r=>r.status===k).length,L=REQ.filter(r=>r.status===reqF),lab={pending:"Kutilmoqda",approved:"Tasdiqlangan",rejected:"Rad etilgan"};
+    const when=x=>{const t=tz(x);return `${t.getUTCDate()}-${MO[t.getUTCMonth()]} ${String(t.getUTCHours()).padStart(2,"0")}:${String(t.getUTCMinutes()).padStart(2,"0")}`};
+    M().innerHTML=`<div class="x-top"><button class="x-back" id="nxB" aria-label="Orqaga">${ICO.back}</button><div><h1 style="font-size:20px">Artel so'rovlari</h1><p class="x-sub">Faqat sizga (admin) ko'rinadi</p></div></div>
+    <div class="x-chips">${Object.keys(lab).map(k=>`<button class="x-chip" data-f="${k}" aria-pressed="${reqF===k}" style="${reqF===k?"background:#FF8A3D;border-color:#FF8A3D;color:#1A0D04":""}">${lab[k]} · ${cnt(k)}</button>`).join("")}</div>
+    ${L.length?L.map(r=>`<div class="x-card" style="padding:14px;display:flex;flex-direction:column;gap:12px"><div class="x-row">${tgAv({photo_url:r.photo,first_name:r.name},48)}
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:700" class="x-ell">${esc(r.name)}</span><span style="font-size:13px;color:#FFB067">${r.username?"@"+esc(r.username):"username yo'q"} · ID ${r.tg_id}</span>
+      <span class="x-mu" style="font-size:12.5px">Ilovada ${r.days} kun · ${n0(r.answers)} ta javob · ${when(r.at)}</span></div></div>
+      ${r.status==="pending"?`<div class="x-grid2"><button class="x-btn" data-ok="1" data-id="${r.id}" style="background:var(--ok);color:#0A0D14">Tasdiqlash</button><button class="x-btn ghost" data-ok="0" data-id="${r.id}" style="color:var(--bad)">Rad etish</button></div>`:`<span class="x-mu" style="font-size:12.5px">${lab[r.status]}${r.decided?" · "+when(r.decided):""}</span>`}</div>`).join(""):`<div class="x-card x-empty"><b>${reqF==="pending"?"Yangi so'rov yo'q":"Ro'yxat bo'sh"}</b>${reqF==="pending"?"Yangi so'rovlar bot orqali ham keladi.":""}</div>`}`;
+    $("nxB").onclick=back;
+    M().querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{reqF=b.dataset.f;drawReq()});
+    M().querySelectorAll("[data-id]").forEach(b=>b.onclick=async()=>{b.disabled=true;
+      try{const r=await rpc("exam_admin_access_decide",{p_token:ME.token,p_req:b.dataset.id,p_ok:b.dataset.ok==="1"});const x=REQ.find(q=>q.id===b.dataset.id);
+        if(x&&!/^already_/.test(r)){x.status=r;x.decided=new Date().toISOString()}ntoast(r==="approved"?"Tasdiqlandi, foydalanuvchiga xabar yuborildi":r==="rejected"?"Rad etildi":"Bu so'rov allaqachon ko'rib chiqilgan");drawReq()}
+      catch(e){ntoast(e.message);b.disabled=false}});
   }
   return {start};
 })();
