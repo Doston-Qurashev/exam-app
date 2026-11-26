@@ -406,6 +406,14 @@ function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout
 
 /* ---------- server ---------- */
 const ERR={INVITE:"Taklif kodi noto'g'ri.",USERNAME_FORMAT:"Username 3–30 belgi bo'lsin: lotin harflari, raqamlar, nuqta yoki chiziqcha.",PASSWORD_SHORT:"Parol kamida 4 belgidan iborat bo'lsin.",USERNAME_TAKEN:"Bu username band. Boshqasini tanlang.",BAD_LOGIN:"Username yoki parol noto'g'ri.",BLOCKED:"Bu akkaunt bloklangan. Sayt egasiga murojaat qiling.",SESSION:"Sessiya tugagan. Qaytadan kiring.",NOT_ADMIN:"Bu bo'lim faqat admin uchun.",NAME_FORMAT:"Ism va familiyani to'g'ri yozing: har biri kamida 2 harf, raqamsiz.",SETUP_CODE:"Sozlash kodi noto'g'ri.",PASSWORD_SHORT6:"Admin paroli kamida 6 belgi bo'lsin.",BAD_INPUT:"Ma'lumot noto'g'ri kiritildi.",RATE:"Juda ko'p xabar yubordingiz. Bir daqiqadan keyin yozing.",NO_USER:"Avval ism va familiyangizni yozib kirishga urinib ko'ring.",TG_SETUP:"Telegram orqali kirish hali sozlanmagan.",TG_BAD:"Telegram ma'lumoti tasdiqlanmadi. Botni yopib, qayta oching.",TG_OLD:"Telegram sessiyasi eskirgan. Botni yopib, qayta oching."};
+async function tgMembers(){const box=$("tgmB");if(!box)return;let R;try{R=await rpc("exam_admin_tg_members",{p_token:ME.token})}catch(e){box.innerHTML=`<p class="hint" style="padding:12px 18px;margin:0">Ma'lumot olinmadi: ${esc(e.message)}</p>`;return}
+const d=t=>{try{return new Date(t).toLocaleString("uz-UZ",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}catch{return t}};
+const who=r=>esc([r.name,r.tg?"@"+r.tg:"",r.user&&!/^tg-/.test(r.user)?r.user:""].filter(Boolean).join(" · ")||"—");
+const st={member:"botni ochdi",kicked:"bloklandi",left:"chiqib ketdi"};
+const B=R.blocked||[],L=R.log||[];$("tgmN").textContent=B.length?B.length+" kishi hozir bloklagan":"Hozir hech kim bloklamagan";
+box.innerHTML=`<p class="hint" style="padding:12px 18px 0;margin:0">Kimdir botni bloklasa yoki qayta ochsa, shu yerda avtomatik paydo bo'ladi. Chatni tozalashni Telegram botga bildirmaydi.</p>
+<div class="tbl-wrap"><table><thead><tr><th>Telegram ID</th><th>Kim</th><th>Qachon bloklagan</th></tr></thead><tbody>${B.length?B.map(r=>`<tr><td>${r.tg_id}</td><td>${who(r)}</td><td>${d(r.at)}</td></tr>`).join(""):`<tr><td colspan="3" class="hint">Yo'q</td></tr>`}</tbody></table></div>
+${L.length?`<details style="padding:0 18px 14px"><summary class="hint" style="cursor:pointer">Oxirgi o'zgarishlar (${L.length})</summary><div class="tbl-wrap"><table><thead><tr><th>Vaqt</th><th>Telegram ID</th><th>Kim</th><th>Hodisa</th></tr></thead><tbody>${L.map(r=>`<tr><td>${d(r.at)}</td><td>${r.tg_id}</td><td>${who(r)}</td><td>${esc(st[r.new_status]||r.new_status)}${r.src==="tekshiruv"?" (tekshiruvda aniqlangan)":""}</td></tr>`).join("")}</tbody></table></div></details>`:""}`}
 async function rpc(fn,args){
   const h={"Content-Type":"application/json",apikey:SB_KEY};
   if(!SB_KEY.startsWith("sb_"))h.Authorization="Bearer "+SB_KEY;
@@ -782,6 +790,7 @@ async function adminView(){
   <div class="panel" id="tgP"><div class="panel-h"><h3>Telegram bot va reyting</h3><span class="aud ${TGI&&TGI.token?"aud-all":"aud-admin"}">${TGI?(TGI.token?"Bot ulangan":"Bot tokeni qo'yilmagan"):"Sozlanmagan"}</span></div>
   ${TGI?`<p class="hint" style="padding:12px 18px;margin:0">Telegram foydalanuvchilari: <b>${TGI.users}</b> · shu hafta ball to'plaganlar: <b>${TGI.active_week}</b> · savol kalitlari: <b>${TGI.keys}</b>${TGI.admin_linked?" · sizning Telegram akkauntingiz admin sifatida ulangan":""}</p>
   <div class="ann-ctl"><button class="btn sm" id="keysBtn">Ball kalitlarini yangilash</button><button class="btn sm" id="boardBtn">Reytingni ko'rish</button><span class="hint" id="keysOut">${TGI.keys?"":"Ball hisoblanishi uchun bir marta bosing."}</span></div>`:`<p class="hint" style="padding:12px 18px;margin:0">Avval Supabase'da migrate12.sql ni ishga tushiring.</p>`}</div>
+  <div class="panel" id="tgmP"><div class="panel-h"><h3>Botni bloklaganlar</h3><span class="hint" id="tgmN"></span></div><div id="tgmB"><p class="hint" style="padding:12px 18px;margin:0">Yuklanmoqda…</p></div></div>
   <div class="panel" id="nuiP"><div class="panel-h"><h3>Yangi Telegram ilova</h3><span class="aud ${FLAGS.newui==="all"?"aud-all":"aud-admin"}">${FLAGS.newui==="all"?"Hamma foydalanuvchiga":"Faqat sizga"}</span></div>
   <p class="hint" style="padding:12px 18px;margin:0">To'q dizayndagi yangi ilova: kunlik vazifa, darajali liga, xato daftari, taklif bonusi, bot eslatmalari. Hammaga ochilganda Telegram'dagi hamma foydalanuvchi yangi ilovani ko'radi. Sayt avvalgidek ishlayveradi, pastki chap burchakda botga havola turadi.</p>
   <div class="ann-ctl">${FLAGS.newui==="all"?`<button class="btn sm" data-nflag="admin">Faqat menga qaytarish</button>`:`<button class="btn sm danger" data-nflag="all">Hammaga ochish</button>`}</div></div>
@@ -811,7 +820,7 @@ async function adminView(){
   const n=C.reduce((a,c)=>a+(+c.unread||0),0);$("admBadge").textContent=n;$("admBadge").hidden=!n;
   const filt=(inp,body)=>{$(inp).oninput=e=>{const q=e.target.value.trim().toLowerCase();$(body).querySelectorAll("tr").forEach(tr=>tr.hidden=q&&!tr.dataset.s.includes(q))}};
   filt("uf","ub");filt("lf","lb");annWire();
-  const kb=$("keysBtn");if(kb)kb.onclick=()=>uploadKeys(kb,$("keysOut"));const bb=$("boardBtn");if(bb)bb.onclick=()=>boardView();
+  const kb=$("keysBtn");if(kb)kb.onclick=()=>uploadKeys(kb,$("keysOut"));tgMembers();const bb=$("boardBtn");if(bb)bb.onclick=()=>boardView();
   $("view").querySelectorAll("[data-bflag]").forEach(b=>b.onclick=async()=>{const v=b.dataset.bflag;if(v==="all"&&b.dataset.confirm!=="1"){b.dataset.confirm="1";b.textContent="Tasdiqlash: hammaga";setTimeout(()=>{if(b.isConnected){b.dataset.confirm="";b.textContent="Hammaga ko'rsatish"}},4000);return}
     try{await rpc("exam_admin_flag",{p_token:ME.token,p_key:"bhms",p_value:v});FLAGS.bhms=v;toast(v==="all"?"BHMS bo'limi hamma foydalanuvchiga ko'rsatildi":"BHMS bo'limi faqat sizda");adminView()}catch(e){toast(e.message)}});
   $("view").querySelectorAll("[data-pflag]").forEach(b=>b.onclick=async()=>{const v=b.dataset.pflag;if(v==="all"&&b.dataset.confirm!=="1"){b.dataset.confirm="1";b.textContent="Tasdiqlash: hammaga";setTimeout(()=>{if(b.isConnected){b.dataset.confirm="";b.textContent="Hammaga ko'rsatish"}},4000);return}
